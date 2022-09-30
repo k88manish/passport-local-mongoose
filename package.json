@@ -1,5 +1,5 @@
 {
-  "name": "passport-local-mongoose",
+  "name": "passport-local-mongoose-bcrypt",
   "description": "Mongoose plugin that simplifies building username and password login with Passport",
   "version": "7.1.2",
   "main": "index.js",
@@ -16,6 +16,7 @@
     "node": ">= 8.0.0"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "generaterr": "^1.5.0",
     "passport-local": "^1.0.0",
     "scmp": "^2.1.0"

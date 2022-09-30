@@ -8,7 +8,7 @@ const errors = require('../lib/errors.js');
 const passportLocalMongoose = require('../');
 
 const DefaultUserSchema = new Schema();
-DefaultUserSchema.plugin(passportLocalMongoose);
+DefaultUserSchema.plugin(passportLocalMongoose, { hashingAlgo: 'bcrypt' });
 const DefaultUser = mongoose.model('DefaultUser', DefaultUserSchema);
 
 const dbName = 'passportlocalmongoosetests';
@@ -419,6 +419,7 @@ describe('passportLocalMongoose', function () {
     it('should supply message when limiting attempts and authenticating too soon', function (done) {
       const UserSchema = new Schema({});
       UserSchema.plugin(passportLocalMongoose, {
+        hashingAlgo: 'bcrypt',
         limitAttempts: true,
         interval: 20000,
       });
@@ -456,6 +457,7 @@ describe('passportLocalMongoose', function () {
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
         interval: 20000,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsTooSoonUpdateWithError', UserSchema);
 
@@ -488,6 +490,7 @@ describe('passportLocalMongoose', function () {
       const UserSchema = new Schema({});
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsUpdateWithoutError', UserSchema);
 
@@ -523,6 +526,7 @@ describe('passportLocalMongoose', function () {
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
         interval: 20000,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsMismatchWithAnError', UserSchema);
 
@@ -571,9 +575,18 @@ describe('passportLocalMongoose', function () {
 
   describe('#authenticate() async', function () {
     beforeEach(async () => await dropMongodbCollections(connectionString));
-    beforeEach(() =>
-      mongoose.connect(connectionString, { bufferCommands: false, autoIndex: false, useNewUrlParser: true, useUnifiedTopology: true })
-    );
+    beforeEach((done) => {
+      console.log('connecting to connection string', connectionString);
+      mongoose.connect(
+        connectionString,
+        { bufferCommands: false, autoIndex: false, useNewUrlParser: true, useUnifiedTopology: true },
+        (err) => {
+          console.log(err);
+
+          done();
+        }
+      );
+    });
     afterEach(() => mongoose.disconnect());
 
     it('should yield false with error message in case user cannot be authenticated', async () => {
@@ -591,6 +604,7 @@ describe('passportLocalMongoose', function () {
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
         interval: 20000,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsTooSoonUserAsync', UserSchema);
 
@@ -614,6 +628,7 @@ describe('passportLocalMongoose', function () {
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
         interval: 20000,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsTooSoonUpdateWithErrorAsync', UserSchema);
 
@@ -636,6 +651,7 @@ describe('passportLocalMongoose', function () {
       const UserSchema = new Schema({});
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsUpdateWithoutErrorAsync', UserSchema);
 
@@ -658,6 +674,7 @@ describe('passportLocalMongoose', function () {
       UserSchema.plugin(passportLocalMongoose, {
         limitAttempts: true,
         interval: 20000,
+        hashingAlgo: 'bcrypt',
       });
       const User = mongoose.model('LimitAttemptsMismatchWithAnErrorAsync', UserSchema);
 

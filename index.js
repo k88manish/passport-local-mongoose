@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const LocalStrategy = require('passport-local').Strategy;
 
 const pbkdf2 = require('./lib/pbkdf2');
@@ -12,6 +13,7 @@ module.exports = function (schema, options) {
   options.keylen = options.keylen || 512;
   options.encoding = options.encoding || 'hex';
   options.digestAlgorithm = options.digestAlgorithm || 'sha256'; // To get a list of supported hashes use crypto.getHashes()
+  options.hashingAlgo = options.hashingAlgo || 'pbkdf2';
 
   function defaultPasswordValidator(password, cb) {
     cb(null);
@@ -111,9 +113,9 @@ module.exports = function (schema, options) {
 
         return salt;
       })
-      .then((salt) => pbkdf2Promisified(password, salt, options))
-      .then((hashRaw) => {
-        this.set(options.hashField, Buffer.from(hashRaw, 'binary').toString(options.encoding));
+      .then((salt) => getHashedPassword(password, salt, options))
+      .then((hash) => {
+        this.set(options.hashField, hash);
       })
       .then(() => this);
 
@@ -307,8 +309,19 @@ module.exports = function (schema, options) {
   };
 };
 
+function getHashedPassword(password, salt, options) {
+  if (options.hashingAlgo === 'bcrypt') {
+    return bcryptHash(password);
+  }
+  return pbkdf2Promisified(password, salt.options).then((hashRaw) => Buffer.from(hashRaw, 'binary').toString(options.encoding));
+}
+
 function pbkdf2Promisified(password, salt, options) {
   return new Promise((resolve, reject) => pbkdf2(password, salt, options, (err, hashRaw) => (err ? reject(err) : resolve(hashRaw))));
+}
+
+function bcryptHash(password) {
+  return bcrypt.hash(password, 10);
 }
 
 function randomBytes(saltlen) {
